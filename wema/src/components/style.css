@@ -1,0 +1,72 @@
+::-webkit-scrollbar {
+  display: none;
+}
+
+.sidenav {
+  /* position: fixed; */
+}
+
+.user_image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+.profile_image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  background-color: #646cff;
+}
+
+.linkToStart {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+  margin-top: -10px;
+}
+
+.approve:hover {
+  background-color: darkgreen;
+  font-weight: bold;
+}
+.deny:hover {
+  background-color: maroon;
+  font-weight: bold;
+}
+.edit:hover {
+  background-color: orange;
+  font-weight: bold;
+}
+.delete:hover {
+  background-color: red;
+  font-weight: bold;
+}
+
+.dashboardDesc {
+  font-size: 10px;
+  background-color: #646cff;
+  color: white;
+  height: 20vh;
+  width: 35vh;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 10px;
+  margin: 10px;
+}
+
+.description {
+  font-size: 0.9rem;
+  padding: 10px;
+}
+
+.pTitle {
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding-top: 7px;
+  display: flex;
+  justify-content: flex-end;
+  margin-right: 1rem;
+  margin-top: 1rem;
+}
