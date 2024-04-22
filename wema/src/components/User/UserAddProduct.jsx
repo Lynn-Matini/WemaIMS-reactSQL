@@ -5,24 +5,36 @@ import { useNavigate } from 'react-router-dom';
 function UserAddProduct() {
   const id = localStorage.getItem('userId');
   const [product, setProduct] = useState({
+    productId: '',
     productName: '',
     benefits: '',
     premium: '',
-    productId: '',
     userId: id,
     allocation: '',
     providers: '',
     status: '',
   });
   const navigate = useNavigate();
+  const [user, setUser] = useState([]);
   const [attach, setAttach] = useState([]);
 
   useEffect(() => {
     axios
-      .get('http://localhost:3000/admin/products')
+      .get('http://localhost:3000/user/products')
       .then((result) => {
         if (result.data.Status) {
           setAttach(result.data.Result);
+        } else {
+          alert(result.data.Error);
+        }
+      })
+      .catch((err) => console.log(err));
+
+    axios
+      .get('http://localhost:3000/admin/users')
+      .then((result) => {
+        if (result.data.Status) {
+          setUser(result.data.Result);
         } else {
           alert(result.data.Error);
         }
@@ -39,10 +51,10 @@ function UserAddProduct() {
     setProduct({ ...product, productId: productId });
     if (selectedProduct) {
       setProduct({
+        productId: selectedProduct.id,
         productName: selectedProduct.productName,
         benefits: selectedProduct.benefits,
         premium: selectedProduct.premium,
-        productId: selectedProduct.id,
         userId: id,
         allocation: selectedProduct.allocation,
         providers: selectedProduct.providers,
@@ -50,10 +62,10 @@ function UserAddProduct() {
       });
     } else {
       setProduct({
+        productId: '',
         productName: '',
         benefits: '',
         premium: '',
-        productId: '',
         allocation: '',
         providers: '',
         status: '',
@@ -63,11 +75,22 @@ function UserAddProduct() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const userGender = user.find(
+      (u) => Number(u.id) === Number(product.userId)
+    )?.gender;
+
+    const isMaternityProduct = product.benefits.includes('Maternity');
+
+    if (userGender === 'Male' && isMaternityProduct) {
+      alert('You are not a female to purchase a Maternity product');
+      return; // Stop the submission
+    }
+
     const userproductdata = {
+      productId: product.productId,
       productName: product.productName,
       benefits: product.benefits,
       premium: product.premium,
-      productId: product.productId,
       userId: product.userId,
       allocation: product.allocation,
       providers: product.providers,
@@ -90,8 +113,29 @@ function UserAddProduct() {
   return (
     <div className="d-flex justify-content-center align-items-center mt-3">
       <div className="p-3 rounded w-50 border">
-        <h3 className="text-center">Add Product</h3>
+        <h3 className="text-center">Buy a Product</h3>
         <form className="row g-1" onSubmit={handleSubmit}>
+          <div className="col-12">
+            <label htmlFor="pId" className="form-label">
+              Product ID
+            </label>
+            <select
+              className="form-select"
+              id="pId"
+              name="productId"
+              value={product.productId}
+              onChange={handleProductChange}
+            >
+              <option value="">Select Product ID</option>
+              {attach.map((a) => {
+                return (
+                  <option key={a.id} value={a.id}>
+                    {a.id}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
           <div className="col-12">
             <label htmlFor="pName" className="form-label">
               Product Name
@@ -135,28 +179,6 @@ function UserAddProduct() {
               value={product.premium}
               disabled
             />
-          </div>
-          <div className="col-12">
-            <label htmlFor="pId" className="form-label">
-              Product ID
-            </label>
-            <select
-              className="form-select"
-              id="pId"
-              name="productId"
-              value={product.productId}
-              onChange={handleProductChange}
-            >
-              <option value="">Select Product ID</option>
-              {attach.map((a) => {
-                return (
-                  <option key={a.id} value={a.id}>
-                    {a.id}
-                  </option>
-                );
-              })}
-              {console.log(attach)}
-            </select>
           </div>
           <div className="col-12">
             <label htmlFor="uId" className="form-label">

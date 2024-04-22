@@ -14,20 +14,78 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.post('/login', (req, res) => {
   const sql = `SELECT * FROM admin WHERE email = ? AND password = ?`;
   con.query(sql, [req.body.email, req.body.password], (err, result) => {
-    if (err) return res.json({ loginStatus: false, Error: 'Login error' });
+    if (err)
+      return res.json({ loginStatus: false, Error: 'Login error' + err });
     if (result.length > 0) {
       const email = result[0].email;
       const id = result[0].id;
+      const allocationTotal = result[0].allocationTotal;
+      const claimTotal = result[0].claimTotal;
+      const processedProducts = result[0].processedProducts;
+      const processedClaims = result[0].processedClaims;
       const token = jwt.sign(
         { role: 'admin', email: email, id: id },
         'jwt_secret_key',
         { expiresIn: '1d' }
       );
       res.cookie('token', token);
-      return res.json({ loginStatus: true, id: id, email: email });
+      return res.json({
+        loginStatus: true,
+        id: id,
+        email: email,
+        allocationTotal: allocationTotal,
+        claimTotal: claimTotal,
+        processedProducts: processedProducts,
+        processedClaims: processedClaims,
+      });
     } else {
       return res.json({ loginStatus: false, Error: 'Invalid credentials' });
     }
+  });
+});
+
+// //ALLOCATION TOTAL
+router.put('/updateAllocationTotal/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = `UPDATE admin SET allocationTotal = ?, claimTotal = ?, processedProducts = ?, processedClaims = ?
+   WHERE id = ?`;
+  const values = [
+    req.body.allocationTotal,
+    req.body.claimTotal,
+    req.body.processedProducts,
+    req.body.processedClaims,
+  ];
+  console.log(values + ' here ' + id);
+  con.query(sql, [...values, id], (err, result) => {
+    if (err)
+      return res.json({ Status: false, Error: 'Allocation Total ' + err });
+    return res.json({ Status: true, Result: result });
+  });
+});
+
+router.get('/allocationTotal', (req, res) => {
+  const sql = `SELECT allocationTotal FROM admin`;
+  con.query(sql, (err, result) => {
+    if (err)
+      return res.json({ Status: false, Error: 'Allocation Total ' + err });
+    return res.json({ Status: true, Result: result });
+  });
+});
+
+//PRODUCT BALANCES
+router.put('/update_balance/:userId', (req, res) => {
+  const userId = parseInt(req.params.userId);
+  const sql = `UPDATE purchasedproducts SET balance = ? WHERE userId = ?`;
+  const values = [req.body.balance];
+  console.log(req.body.balance + ' here ' + userId);
+
+  con.query(sql, [...values, userId], (err, result) => {
+    if (err)
+      return res.json({
+        Status: false,
+        Error: 'Update Product Balance ' + err,
+      });
+    return res.json({ Status: true, Result: result });
   });
 });
 
@@ -50,7 +108,7 @@ router.get('/products/:id', (req, res) => {
 });
 
 router.post('/add_product', (req, res) => {
-  const sql = `INSERT INTO productcatalog (productName, description, premium, benefits, allocation, providers) VALUES (?)`;
+  const sql = `INSERT INTO productcatalog (productName, description, premium, benefits, allocation, providers, providersEmail) VALUES (?)`;
   const values = [
     req.body.productName,
     req.body.description,
@@ -58,6 +116,7 @@ router.post('/add_product', (req, res) => {
     req.body.benefits,
     req.body.allocation,
     req.body.providers,
+    req.body.providersEmail,
   ];
   con.query(sql, [values], (err, result) => {
     if (err) return res.json({ Status: false, Error: 'Adding Product ' + err });
@@ -86,10 +145,13 @@ router.put('/edit_product/:id', (req, res) => {
 
 //BOUGHT PRODUCTS
 router.get('/boughtproducts', (req, res) => {
-  const sql = 'SELECT * FROM purchasedproducts';
+  const sql = `SELECT * FROM purchasedproducts`;
   con.query(sql, (err, result) => {
     if (err)
-      return res.json({ Status: false, Error: 'Getting Consumed Products ' });
+      return res.json({
+        Status: false,
+        Error: 'Getting Consumed Products ' + err,
+      });
     return res.json({ Status: true, Result: result });
   });
 });
@@ -106,13 +168,13 @@ router.get('/boughtproducts/:id', (req, res) => {
 router.put('/approve_boughtproduct/:id', (req, res) => {
   const id = req.params.id;
   const sql = `UPDATE purchasedproducts
-        SET status = 'APPROVED'
+        SET status = 'APPROVED', balance = ?
         WHERE id = ?`;
-  con.query(sql, [id], (err, result) => {
+  const values = [req.body.balance];
+  con.query(sql, [...values, id], (err, result) => {
     if (err) return res.json({ Status: false, Error: 'Approve Claim ' + err });
     return res.json({ Status: true, Result: result });
   });
-  console.log(id);
 });
 
 router.put('/deny_boughtproduct/:id', (req, res) => {
@@ -120,37 +182,66 @@ router.put('/deny_boughtproduct/:id', (req, res) => {
   const sql = `UPDATE purchasedproducts
         SET status = 'DENIED'
         WHERE id = ?`;
-  const values = [req.body.status];
   con.query(sql, [id], (err, result) => {
     if (err) return res.json({ Status: false, Error: 'Deny Claim ' + err });
     return res.json({ Status: true, Result: result });
   });
-  console.log(id);
 });
 
 router.post('/add_boughtproduct', (req, res) => {
-  const sql = `INSERT INTO purchasedproducts (productId, productName, benefits, premium, userId, allocation, providers, status) VALUES (?)`;
-  const values = [
-    req.body.productId,
-    req.body.productName,
-    req.body.benefits,
-    req.body.premium,
-    req.body.userId,
-    req.body.allocation,
-    req.body.providers,
-    req.body.status,
-  ];
-  con.query(sql, [values], (err, result) => {
-    if (err)
-      return res.json({ Status: false, Error: 'Adding Bought Product ' + err });
-    return res.json({ Status: true });
+  // First, check if the product already exists for the user
+  const checkSql =
+    'SELECT * FROM purchasedproducts WHERE productId = ? AND userId = ?';
+  const checkValues = [req.body.productId, req.body.userId];
+
+  con.query(checkSql, checkValues, (checkErr, checkResult) => {
+    if (checkErr) {
+      return res.json({
+        Status: false,
+        Error: 'Error checking for existing product: ' + checkErr,
+      });
+    }
+
+    if (checkResult.length > 0) {
+      // If the product already exists for the user, return an error message
+      return res.json({
+        Status: false,
+        Error: 'Product already added for this user.',
+      });
+    } else {
+      const sql = `INSERT INTO purchasedproducts (productId, productName, benefits, premium, userId, allocation, providers, status) VALUES (?)`;
+      const values = [
+        req.body.productId,
+        req.body.productName,
+        req.body.benefits,
+        req.body.premium,
+        req.body.userId,
+        req.body.allocation,
+        req.body.providers,
+        req.body.status,
+      ];
+
+      con.query(sql, [values], (err, result) => {
+        if (err) {
+          return res.json({
+            Status: false,
+            Error: 'Adding Product Failed: ' + err,
+          });
+        }
+
+        return res.json({
+          Status: true,
+          Message: 'Product successfully added.',
+        });
+      });
+    }
   });
 });
 
 router.put('/edit_boughtproduct/:id', (req, res) => {
   const id = req.params.id;
   const sql = `UPDATE purchasedproducts
-        SET productId = ?, productName = ?, benefits = ?, premium = ?,  userId = ?, allocation = ?, providers = ?, status = ?
+        SET productId = ?, productName = ?, benefits = ?, premium = ?,  userId = ?, allocation = ?, balance = ?, providers = ?, status = ?
         WHERE id = ?`;
   const values = [
     req.body.productId,
@@ -159,6 +250,7 @@ router.put('/edit_boughtproduct/:id', (req, res) => {
     req.body.premium,
     req.body.userId,
     req.body.allocation,
+    req.body.balance,
     req.body.providers,
     req.body.status,
   ];
@@ -182,21 +274,6 @@ router.delete('/delete_boughtproduct/:id', (req, res) => {
   });
 });
 
-//image upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'Public/Images');
-  },
-  filename: (req, file, cb) => {
-    cb(
-      null,
-      file.fieldname + '_' + Date.now() + path.extname(file.originalname)
-    );
-  },
-});
-const upload = multer({ storage: storage });
-//end image upload
-
 //ADMIN
 router.get('/admin', (req, res) => {
   const sql = 'SELECT * FROM admin';
@@ -215,15 +292,29 @@ router.get('/users', (req, res) => {
   });
 });
 
+//image upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'Public/Images');
+  },
+  filename: (req, file, cb) => {
+    cb(
+      null,
+      file.fieldname + '_' + Date.now() + path.extname(file.originalname)
+    );
+  },
+});
+const upload = multer({ storage: storage });
+//end image upload
+
 router.post('/add_user', upload.single('image'), (req, res) => {
-  const sql = `INSERT INTO users (name, age, gender, allocation, email, password, address, image) VALUES (?)`;
+  const sql = `INSERT INTO users (name, age, gender, email, password, address, image) VALUES (?)`;
   bcrypt.hash(req.body.password, 10, (err, hash) => {
     if (err) return res.json({ Status: false, Error: 'Hashing ' });
     const values = [
       req.body.name,
       req.body.age,
       req.body.gender,
-      req.body.allocation,
       req.body.email,
       hash,
       req.body.address,
@@ -246,10 +337,10 @@ router.get('/users/:id', (req, res) => {
   });
 });
 
-router.put('/edit_user/:id', (req, res) => {
+router.put('/edit_user/:id', upload.single('image'), (req, res) => {
   const id = req.params.id;
   const sql = `UPDATE users
-        SET name = ?, age = ?, gender = ?, email = ?, address = ?
+        SET name = ?, age = ?, gender = ?, email = ?, address = ?, image = ?
         WHERE id = ?`;
   const values = [
     req.body.name,
@@ -257,7 +348,7 @@ router.put('/edit_user/:id', (req, res) => {
     req.body.gender,
     req.body.email,
     req.body.address,
-    // req.file.filename,
+    req.file.filename,
   ];
   con.query(sql, [...values, id], (err, result) => {
     if (err) return res.json({ Status: false, Error: 'Edit User ' + err });
@@ -312,7 +403,17 @@ router.put('/deny_claim/:id', (req, res) => {
   const sql = `UPDATE claims
         SET status = 'DENIED'
         WHERE id = ?`;
-  const values = [req.body.status];
+  con.query(sql, [id], (err, result) => {
+    if (err) return res.json({ Status: false, Error: 'Deny Claim ' + err });
+    return res.json({ Status: true, Result: result });
+  });
+});
+
+router.put('/pendingclaim/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = `UPDATE claims
+        SET status = 'PENDING'
+        WHERE id = ?`;
   con.query(sql, [id], (err, result) => {
     if (err) return res.json({ Status: false, Error: 'Deny Claim ' + err });
     return res.json({ Status: true, Result: result });
@@ -363,7 +464,6 @@ router.delete('/delete_claim/:id', (req, res) => {
     if (err) return res.json({ Status: false, Error: 'Delete Claim ' + err });
     return res.json({ Status: true, Result: result });
   });
-  console.log(id);
 });
 
 //COUNTS

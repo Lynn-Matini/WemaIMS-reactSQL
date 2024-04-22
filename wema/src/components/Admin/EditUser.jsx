@@ -10,7 +10,7 @@ function EditUser() {
     gender: '',
     email: '',
     address: '',
-    image: '',
+    image: null,
   });
   const navigate = useNavigate();
 
@@ -31,26 +31,47 @@ function EditUser() {
       .catch((err) => console.log(err));
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    axios
-      .put('http://localhost:3000/admin/edit_user/' + id, user)
-      .then((result) => {
-        if (result.data.Status) {
-          navigate('/users');
-        } else {
-          alert(result.data.Error);
-          console.log(result.data.Error);
+
+    const formData = new FormData();
+    formData.append('name', user.name);
+    formData.append('age', user.age);
+    formData.append('gender', user.gender);
+    formData.append('email', user.email);
+    formData.append('address', user.address);
+    formData.append('image', user.image); // Append the file object
+
+    try {
+      const result = await axios.put(
+        `http://localhost:3000/admin/edit_user/${id}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         }
-      })
-      .catch((err) => console.log(err));
+      );
+      if (result.data.Status) {
+        navigate('/users');
+      } else {
+        alert(result.data.Error);
+        console.log(result.data.Error);
+      }
+    } catch (error) {
+      console.error('Error occurred while editing user:', error);
+    }
   };
 
   return (
     <div className="d-flex justify-content-center align-items-center mt-3">
       <div className="p-3 rounded w-50 border">
         <h3 className="text-center">Edit User</h3>
-        <form className="row g-1" onSubmit={handleSubmit}>
+        <form
+          className="row g-1"
+          onSubmit={handleSubmit}
+          encType="multipart/form-data"
+        >
           <div className="col-12">
             <label htmlFor="userName" className="form-label">
               Name
@@ -124,7 +145,7 @@ function EditUser() {
               onChange={(e) => setUser({ ...user, address: e.target.value })}
             />
           </div>
-          {/* <div className="col-12 mb-3">
+          <div className="col-12 mb-3">
             <label className="form-label" htmlFor="userImage">
               Select Image
             </label>
@@ -133,10 +154,9 @@ function EditUser() {
               className="form-control rounded-0"
               id="userImage"
               name="image"
-              // value={user.image},
               onChange={(e) => setUser({ ...user, image: e.target.files[0] })}
             />
-          </div> */}
+          </div>
           <div className="col-12">
             <button type="submit" className="btn btn-primary w-100">
               Edit User

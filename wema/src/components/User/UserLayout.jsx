@@ -1,10 +1,16 @@
 import axios from 'axios';
+import { useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 
-function UserDetails() {
+function UserLayout() {
   const navigate = useNavigate();
+  const [activeNavLink, setActiveNavLink] = useState(null);
   axios.defaults.withCredentials = true;
   const email = localStorage.getItem('email');
+
+  const handleNavLinkClick = (index) => {
+    setActiveNavLink(index);
+  };
 
   const handleLogout = () => {
     axios.get('http://localhost:3000/user/logout').then((result) => {
@@ -38,52 +44,27 @@ function UserDetails() {
               className="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start"
               id="menu"
             >
-              <li className="w-100">
-                <Link
-                  to="/userdashboard"
-                  className="nav-link text-white px-0 align-middle"
-                >
-                  <i className="fs-4 bi-speedometer2 ms-2"></i>
-                  <span className="ms-2 d-none d-sm-inline">Dashboard</span>
-                </Link>
-              </li>
-              <li className="w-100">
-                <Link
-                  to="/userclaims"
-                  className="nav-link px-0 align-middle text-white"
-                >
-                  <i className="fs-4 bi-file-earmark-text ms-2"></i>
-                  <span className="ms-2 d-none d-sm-inline">Claims</span>
-                </Link>
-              </li>
-              <li className="w-100">
-                <Link
-                  to="/userproducts"
-                  className="nav-link px-0 align-middle text-white"
-                >
-                  <i className="fs-4 bi-grid ms-2"></i>
-                  <span className="ms-2 d-none d-sm-inline">Products</span>
-                </Link>
-              </li>
+              {navLinks.map((navLink, index) => (
+                <li className="w-100" key={index}>
+                  <Link
+                    to={navLink.to}
+                    className="nav-link px-0 align-middle text-white"
+                  >
+                    <div
+                      className={`navlinks ${
+                        activeNavLink === index ? 'active' : ''
+                      }`}
+                      onClick={() => handleNavLinkClick(index)}
+                    >
+                      <i className={`fs-4 bi-${navLink.icon} ms-2`}></i>
+                      <span className="ms-2 d-none d-sm-inline">
+                        {navLink.label}
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              ))}
 
-              <li className="w-100">
-                <Link
-                  to="/userpayments"
-                  className="nav-link px-0 align-middle text-white"
-                >
-                  <i className="fs-4 bi-cash ms-2"></i>
-                  <span className="ms-2 d-none d-sm-inline">Payments</span>
-                </Link>
-              </li>
-              <li className="w-100">
-                <Link
-                  to="/userprofile"
-                  className="nav-link px-0 align-middle text-white"
-                >
-                  <i className="fs-4 bi-person ms-2"></i>
-                  <span className="ms-2 d-none d-sm-inline">Profile</span>
-                </Link>
-              </li>
               <li className="w-100" onClick={handleLogout}>
                 <Link
                   to="/userlogin"
@@ -107,4 +88,12 @@ function UserDetails() {
   );
 }
 
-export default UserDetails;
+const navLinks = [
+  { to: '/userdashboard', icon: 'speedometer2', label: 'Dashboard' },
+  { to: '/userclaims', icon: 'file-earmark-text', label: 'Claims' },
+  { to: '/userproducts', icon: 'grid', label: 'Products' },
+  { to: '/userprofile', icon: 'person', label: 'Profile' },
+  { to: '/education', icon: 'book', label: 'Education' },
+];
+
+export default UserLayout;

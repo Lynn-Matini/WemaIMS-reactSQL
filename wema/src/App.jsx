@@ -19,7 +19,6 @@ import EditBoughtProduct from './components/Admin/EditBoughtProduct';
 import Claims from './components/Admin/Claims';
 import AddClaim from './components/Admin/AddClaim';
 import EditClaim from './components/Admin/EditClaim';
-import Payments from './components/Admin/Payments';
 import Profile from './components/Admin/Profile';
 
 //USER
@@ -28,11 +27,11 @@ import UserLayout from './components/User/UserLayout';
 import UserDashboard from './components/User/UserDashboard';
 import UserProducts from './components/User/UserProducts';
 import UserClaims from './components/User/UserClaims';
-import UserPayments from './components/User/UserPayments';
 import UserProfile from './components/User/UserProfile';
 import UserEditClaim from './components/User/UserEditClaim';
 import UserAddClaim from './components/User/UserAddClaim';
 import UserAddProduct from './components/User/UserAddProduct';
+import Education from './components/User/Education';
 
 function App() {
   return (
@@ -41,7 +40,6 @@ function App() {
         <Route path="/" element={<Start />} />
         <Route path="/login" element={<Login />} />
         <Route path="/userlogin" element={<UserLogin />} />
-        {/* <Route path="/userprofile/:id" element={<UserProfile />} /> */}
 
         <Route
           path="/"
@@ -68,7 +66,6 @@ function App() {
             path="/edit_boughtproduct/:id"
             element={<EditBoughtProduct />}
           />
-          <Route path="/payments" element={<Payments />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
 
@@ -81,14 +78,13 @@ function App() {
           }
         >
           <Route path="/userdashboard" element={<UserDashboard />} />
+          <Route path="/userproducts" element={<UserProducts />} />
           <Route path="/userclaims" element={<UserClaims />} />
-          {/* <Route path="/userclaims/:id" element={<UserClaims />} /> */}
           <Route path="/useradd_product" element={<UserAddProduct />} />
           <Route path="/useradd_claim" element={<UserAddClaim />} />
           <Route path="/useredit_claim/:id" element={<UserEditClaim />} />
-          <Route path="/userproducts" element={<UserProducts />} />
-          <Route path="/userpayments" element={<UserPayments />} />
           <Route path="/userprofile" element={<UserProfile />} />
+          <Route path="/education" element={<Education />}></Route>
         </Route>
       </Routes>
     </Router>

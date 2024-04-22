@@ -10,6 +10,7 @@ function AddBoughtProduct() {
     productId: '',
     userId: '',
     allocation: '',
+    balance: '',
     providers: '',
     status: '',
   });
@@ -55,6 +56,7 @@ function AddBoughtProduct() {
         premium: selectedProduct.premium,
         productId: selectedProduct.id,
         allocation: selectedProduct.allocation,
+        balance: '0',
         providers: selectedProduct.providers,
         status: 'PENDING',
       });
@@ -65,6 +67,7 @@ function AddBoughtProduct() {
         premium: '',
         productId: '',
         allocation: '',
+        balance: '',
         providers: '',
         status: '',
       });
@@ -73,6 +76,17 @@ function AddBoughtProduct() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const userGender = user.find(
+      (u) => Number(u.id) === Number(product.userId)
+    )?.gender;
+
+    const isMaternityProduct = product.benefits.includes('Maternity');
+
+    if (userGender === 'Male' && isMaternityProduct) {
+      alert('You are not a female to purchase a Maternity product');
+      return; // Stop the submission
+    }
+
     const productdata = {
       productName: product.productName,
       benefits: product.benefits,
@@ -80,6 +94,7 @@ function AddBoughtProduct() {
       productId: product.productId,
       userId: product.userId,
       allocation: product.allocation,
+      balance: product.balance,
       providers: product.providers,
       status: product.status,
     };
@@ -165,7 +180,6 @@ function AddBoughtProduct() {
                   </option>
                 );
               })}
-              {console.log(attach)}
             </select>
           </div>
           <div className="col-12">
@@ -182,15 +196,17 @@ function AddBoughtProduct() {
               }
             >
               <option value="">Select User ID</option>
-
               {user.map((u) => {
+                {
+                  console.log(u.id);
+                }
+
                 return (
                   <option key={u.id} value={u.id}>
                     {u.id}
                   </option>
                 );
               })}
-              {console.log(product.userId)}
             </select>
           </div>
           <div className="col-12">
@@ -204,6 +220,20 @@ function AddBoughtProduct() {
               name="allocation"
               placeholder="Enter Allocation"
               value={product.allocation}
+              disabled
+            />
+          </div>
+          <div className="col-12">
+            <label htmlFor="productBal" className="form-label">
+              Balance
+            </label>
+            <input
+              type="text"
+              className="form-control rounded-0"
+              id="productBal"
+              name="allocation"
+              placeholder="Enter Balance"
+              value="0"
               disabled
             />
           </div>
@@ -240,7 +270,7 @@ function AddBoughtProduct() {
           </div>
           <div className="col-12">
             <button type="submit" className="btn btn-primary w-100">
-              Add Product
+              Buy Product
             </button>
           </div>
         </form>

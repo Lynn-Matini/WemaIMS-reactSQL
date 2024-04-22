@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-// import { toast, ToastContainer } from 'react-toastify';
 import '../style.css';
 
 function UserAddClaim() {
@@ -20,10 +19,13 @@ function UserAddClaim() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:3000/admin/boughtproducts/${id}`)
+      .get(`http://localhost:3000/user/userproducts/${id}`)
       .then((result) => {
         if (result.data.Status) {
-          setAttach(result.data.Result);
+          const approvedProducts = result.data.Result.filter(
+            (product) => product.status === 'APPROVED'
+          );
+          setAttach(approvedProducts);
         } else {
           alert(result.data.Error);
         }
@@ -41,24 +43,11 @@ function UserAddClaim() {
     if (selectedClaim) {
       setClaim({
         productId: selectedClaim.id,
-        userId: id,
+        userId: selectedClaim.userId,
         providers: selectedClaim.providers,
         status: 'PENDING',
       });
     } else {
-      // else if (!selectedClaim) {
-      //   toast.warn(
-      //     'Please first purchase an Insurance product from the Product tab',
-      //     {
-      //       position: 'top-center',
-      //       autoClose: 5000,
-      //       hideProgressBar: false,
-      //       closeOnClick: true,
-      //       pauseOnHover: true,
-      //       draggable: true,
-      //       progress: undefined,
-      //     }
-      //   );
       setClaim({
         productId: '',
         providers: '',
@@ -70,6 +59,24 @@ function UserAddClaim() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const claimAmount = parseFloat(claim.amount);
+
+    const selectedProduct = attach.find(
+      (product) => Number(product.id) === Number(claim.productId)
+    );
+    console.log(selectedProduct.balance);
+    const productBalance = parseFloat(selectedProduct.balance);
+
+    if (!selectedProduct) {
+      alert("Product not selected or doesn't exist.");
+      return;
+    }
+
+    if (claimAmount > productBalance) {
+      alert(`Insufficient balance. Your balance is Kes ${productBalance}`);
+      return; // Stop the form submission
+    }
+
     const userclaimdata = {
       claimName: claim.claimName,
       amount: claim.amount,
@@ -95,10 +102,30 @@ function UserAddClaim() {
 
   return (
     <div className="d-flex justify-content-center align-items-center mt-3">
-      {/* <ToastContainer /> */}
       <div className="p-3 rounded w-50 border">
         <h3 className="text-center">Add Claim</h3>
         <form className="row g-1" onSubmit={handleSubmit}>
+          <div className="col-12">
+            <label htmlFor="pId2" className="form-label">
+              Purchased Product ID
+            </label>
+            <select
+              className="form-select"
+              id="pId2"
+              name="productId"
+              value={claim.productId}
+              onChange={handleClaimChange}
+            >
+              <option value="">Select Product ID</option>
+              {attach.map((a) => {
+                return (
+                  <option key={a.id} value={a.id}>
+                    {a.id}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
           <div className="col-12">
             <label htmlFor="inputName" className="form-label">
               Claim Name
@@ -141,27 +168,7 @@ function UserAddClaim() {
               onChange={(e) => setClaim({ ...claim, notes: e.target.value })}
             />
           </div>
-          <div className="col-12">
-            <label htmlFor="pId2" className="form-label">
-              Purchased Product ID
-            </label>
-            <select
-              className="form-select"
-              id="pId2"
-              name="productId"
-              value={claim.productId}
-              onChange={handleClaimChange}
-            >
-              <option value="">Select Product ID</option>
-              {attach.map((a) => {
-                return (
-                  <option key={a.id} value={a.id}>
-                    {a.id}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
+
           <div className="col-12">
             <label htmlFor="inputAddress" className="form-label">
               Provider Name

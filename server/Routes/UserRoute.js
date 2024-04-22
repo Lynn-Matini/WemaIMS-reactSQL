@@ -9,11 +9,15 @@ const router = express.Router();
 router.post('/userlogin', (req, res) => {
   const sql = `SELECT * FROM users WHERE email = ?`;
   con.query(sql, [req.body.email], (err, result) => {
-    if (err) return res.json({ loginStatus: false, Error: 'Logging in ' });
+    if (err)
+      return res.json({ loginStatus: false, Error: 'Logging in ' + err });
     if (result.length > 0) {
       bcrypt.compare(req.body.password, result[0].password, (err, response) => {
         if (err)
-          return res.json({ loginStatus: false, Error: 'Wrong Password' });
+          return res.json({
+            loginStatus: false,
+            Error: 'Wrong Password ' + err,
+          });
         if (response) {
           const email = result[0].email;
           const id = result[0].id;
@@ -36,20 +40,15 @@ router.post('/userlogin', (req, res) => {
 });
 
 //USERS
-router.get('/users', (req, res) => {
-  const sql = 'SELECT * FROM users';
-  con.query(sql, (err, result) => {
-    if (err) return res.json({ Status: false, Error: 'Getting All Users ' });
-    return res.json({ Status: true, Result: result });
-  });
-});
-
 router.get('/users/:id', (req, res) => {
   const id = req.params.id;
   const sql = `SELECT * FROM users WHERE id = ?`;
   con.query(sql, [id], (err, result) => {
     if (err)
-      return res.json({ Status: false, Error: 'Getting User by userId ' });
+      return res.json({
+        Status: false,
+        Error: 'Getting User by id ' + err,
+      });
     return res.json({ Status: true, Result: result });
   });
 });
@@ -62,7 +61,7 @@ router.get('/claims/:id', (req, res) => {
     if (err)
       return res.json({
         Status: false,
-        Error: 'Getting User Claims Details by userId ',
+        Error: 'Getting User Claims Details by userId ' + err,
       });
     return res.json({ Status: true, Result: result });
   });
@@ -75,7 +74,7 @@ router.get('/userclaims/:id', (req, res) => {
     if (err)
       return res.json({
         Status: false,
-        Error: 'Getting User Claims Details by claimId ',
+        Error: 'Getting User Claims Details by claimId ' + err,
       });
     return res.json({ Status: true, Result: result });
   });
@@ -101,19 +100,15 @@ router.post('/useradd_claim', (req, res) => {
 router.put('/useredit_claim/:id', (req, res) => {
   const id = req.params.id;
   const sql = `UPDATE claims
-        SET claimName = ?, amount = ?, notes = ?, providerId = ?, providerName = ?, status = ?, userId = ?
+        SET claimName = ?, amount = ?, notes = ?
         WHERE id = ?`;
-  const values = [
-    req.body.claimName,
-    req.body.amount,
-    req.body.notes,
-    req.body.providerId,
-    req.body.providerName,
-    req.body.status,
-    req.body.userId,
-  ];
+  const values = [req.body.claimName, req.body.amount, req.body.notes];
   con.query(sql, [...values, id], (err, result) => {
-    if (err) return res.json({ Status: false, Error: 'Editing Claim ' + err });
+    if (err)
+      return res.json({
+        Status: false,
+        Error: 'Editing Claim by Claim ID ' + err,
+      });
     return res.json({ Status: true, Result: result });
   });
 });
@@ -128,67 +123,104 @@ router.delete('/delete_claim/:id', (req, res) => {
 });
 
 //PRODUCTS
-router.get('/products/:id', (req, res) => {
-  const id = req.params.id;
-  const sql = `SELECT * FROM purchasedproducts WHERE userId = ?`;
-  con.query(sql, [id], (err, result) => {
-    if (err)
-      return res.json({
-        Status: false,
-        Error: 'Getting User Products Details by userId ',
-      });
+router.get('/products', (req, res) => {
+  const sql = 'SELECT * FROM productcatalog';
+  con.query(sql, (err, result) => {
+    if (err) return res.json({ Status: false, Error: 'Getting All Products ' });
     return res.json({ Status: true, Result: result });
   });
 });
 
-router.get('/userproducts/:id', (req, res) => {
+//Special for calling by Product ID
+router.get('/products/:id', (req, res) => {
   const id = req.params.id;
   const sql = `SELECT * FROM purchasedproducts WHERE id = ?`;
   con.query(sql, [id], (err, result) => {
     if (err)
       return res.json({
         Status: false,
-        Error: 'Getting User Products Details by claimId ',
+        Error: 'Getting All Products by Product ID ' + err,
+      });
+    return res.json({ Status: true, Result: result });
+  });
+});
+
+//Special for calling by userID
+router.get('/userproducts/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = `SELECT * FROM purchasedproducts WHERE userId = ?`;
+  con.query(sql, [id], (err, result) => {
+    if (err)
+      return res.json({
+        Status: false,
+        Error: 'Getting User Products Details by User Id ' + err,
+      });
+    return res.json({ Status: true, Result: result });
+  });
+});
+
+router.get('/pendingproducts/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = `SELECT premium FROM purchasedproducts WHERE userId = ? AND status = 'PENDING'`;
+  con.query(sql, [id], (err, result) => {
+    if (err)
+      return res.json({
+        Status: false,
+        Error:
+          'Getting User Products Details by User Id with Pending Statuses ' +
+          err,
       });
     return res.json({ Status: true, Result: result });
   });
 });
 
 router.post('/useradd_product', (req, res) => {
-  const sql = `INSERT INTO purchasedproducts (productName, benefits, premium, productId, userId, allocation, providers, status) VALUES (?)`;
-  const values = [
-    req.body.productName,
-    req.body.benefits,
-    req.body.premium,
-    req.body.productId,
-    req.body.userId,
-    req.body.allocation,
-    req.body.providers,
-    req.body.status,
-  ];
-  con.query(sql, [values], (err, result) => {
-    if (err) return res.json({ Status: false, Error: 'Adding Product ' + err });
-    return res.json({ Status: true });
-  });
-});
+  // First, check if the product already exists for the user
+  const checkSql =
+    'SELECT * FROM purchasedproducts WHERE productId = ? AND userId = ?';
+  const checkValues = [req.body.productId, req.body.userId];
 
-router.put('/useredit_product/:id', (req, res) => {
-  const id = req.params.id;
-  const sql = `UPDATE purchasedproducts
-        SET productName = ?, benefits = ?, premium = ?, userId = ?, allocation = ?, providers = ?
-        WHERE id = ?`;
-  const values = [
-    req.body.productName,
-    req.body.benefits,
-    req.body.premium,
-    req.body.userId,
-    req.body.allocation,
-    req.body.providers,
-  ];
-  con.query(sql, [...values, id], (err, result) => {
-    if (err)
-      return res.json({ Status: false, Error: 'Editing Product ' + err });
-    return res.json({ Status: true, Result: result });
+  con.query(checkSql, checkValues, (checkErr, checkResult) => {
+    if (checkErr) {
+      return res.json({
+        Status: false,
+        Error: 'Error checking for existing product: ' + checkErr,
+      });
+    }
+
+    if (checkResult.length > 0) {
+      // If the product already exists for the user, return an error message
+      return res.json({
+        Status: false,
+        Error: 'Product already added for this user.',
+      });
+    } else {
+      const sql = `INSERT INTO purchasedproducts (productId, productName, benefits, premium, userId, allocation, providers, status) VALUES (?)`;
+      const values = [
+        req.body.productId,
+        req.body.productName,
+        req.body.benefits,
+        req.body.premium,
+        req.body.userId,
+        req.body.allocation,
+        req.body.providers,
+        req.body.status,
+      ];
+
+      con.query(sql, [values], (err, result) => {
+        if (err) {
+          return res.json({
+            Status: false,
+            Error: 'Adding Product Failed: ' + err,
+          });
+        }
+
+        return res.json({
+          Status: true,
+          Message: 'Product successfully added.',
+        });
+      });
+    }
   });
 });
 
@@ -202,20 +234,55 @@ router.delete('/delete_product/:id', (req, res) => {
   });
 });
 
-//COUNTS
-router.get('/admin_count', (req, res) => {
-  const sql = `SELECT COUNT(id) as admin from admin`;
-  con.query(sql, (err, result) => {
-    if (err) return res.json({ Status: false, Error: 'Admin Count ' + err });
-    return res.json({ Status: true, Result: result });
-  });
-});
-
+// COUNTS
 router.get('/product_count/:id', (req, res) => {
   const id = req.params.id;
   const sql = `SELECT COUNT(id) as product from purchasedproducts WHERE userId = ?`;
   con.query(sql, [id], (err, result) => {
     if (err) return res.json({ Status: false, Error: 'Product Count ' + err });
+    return res.json({ Status: true, Result: result });
+  });
+});
+
+router.get('/approvedProduct_count/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = `SELECT COUNT(id) as product from purchasedproducts WHERE userId = ? AND status = 'APPROVED'`;
+  con.query(sql, [id], (err, result) => {
+    if (err)
+      return res.json({
+        Status: false,
+        Error: 'Approved Product Count ' + err,
+      });
+    return res.json({ Status: true, Result: result });
+  });
+});
+
+router.get('/approvedClaim_count/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = `SELECT COUNT(id) as claim from claims WHERE userId = ? AND status = 'APPROVED'`;
+  con.query(sql, [id], (err, result) => {
+    if (err)
+      return res.json({ Status: false, Error: 'Approved Claim Count ' + err });
+    return res.json({ Status: true, Result: result });
+  });
+});
+
+router.get('/pendingProduct_count/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = `SELECT COUNT(id) as product from purchasedproducts WHERE userId = ? AND status = 'PENDING'`;
+  con.query(sql, [id], (err, result) => {
+    if (err)
+      return res.json({ Status: false, Error: 'Pending Product Count ' + err });
+    return res.json({ Status: true, Result: result });
+  });
+});
+
+router.get('/pendingClaim_count/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = `SELECT COUNT(id) as claim from claims WHERE userId = ? AND status = 'PENDING'`;
+  con.query(sql, [id], (err, result) => {
+    if (err)
+      return res.json({ Status: false, Error: 'Pending Claim Count ' + err });
     return res.json({ Status: true, Result: result });
   });
 });

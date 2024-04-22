@@ -30,10 +30,10 @@ function UserLogin() {
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100">
+    <div className="d-flex justify-content-center align-items-center vh-100 loginPage">
       <div className="p-3 rounded w-25 border loginForm">
         <div className="text-danger">{error && error}</div>
-        <h2>User Login</h2>
+        <h2 className="mb-4 d-flex justify-content-center">User Login</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label htmlFor="email">
@@ -63,13 +63,13 @@ function UserLogin() {
               className="form-control rounded-0"
             />
           </div>
-          <Link to="/" className="linkToStart">
-            Return to Starting page
-          </Link>
-          <button className="btn btn-success w-100 rounded- mb-2">
+          <button className="btn btn-primary w-100 rounded mb-2 mt-2 loginButton">
             Log in
           </button>
         </form>
+        <Link to="/login" className="linkToPortal">
+          Login as Admin
+        </Link>
       </div>
     </div>
   );

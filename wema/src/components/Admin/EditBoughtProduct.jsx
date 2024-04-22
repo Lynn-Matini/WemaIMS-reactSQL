@@ -88,7 +88,6 @@ function EditBoughtProduct() {
       });
     }
   };
-  console.log(product);
 
   const handleSubmit = (e) => {
     e.preventDefault();

@@ -4,25 +4,18 @@ import { adminRouter } from './Routes/AdminRoute.js';
 import { userRouter } from './Routes/UserRoute.js';
 import Jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
-// import bodyParser from 'body-parser';
 
 const app = express();
 app.use(
   cors({
     origin: ['http://localhost:5173'],
-    // headers: ['Content-Type', 'application/json'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   })
 );
 
-// Handle preflight requests
-// app.options('*', cors());
-
 app.use(express.json());
 app.use(cookieParser());
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/admin', adminRouter);
 app.use('/user', userRouter);
@@ -48,8 +41,3 @@ app.get('/verify', verifyUser, (req, res) => {
 app.listen(3000, () => {
   console.log('Server is listening on port 3000');
 });
-
-// app.use((err, req, res, next) => {
-//   console.error(err.stack);
-//   res.status(500).send('Something went wrong!');
-// });

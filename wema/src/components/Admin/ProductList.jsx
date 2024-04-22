@@ -53,6 +53,7 @@ function ProductList() {
               <th>Benefits</th>
               <th>Allocation</th>
               <th>Providers</th>
+              <th>Providers Email</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -66,6 +67,7 @@ function ProductList() {
                 <td>{p.benefits}</td>
                 <td>{p.allocation}</td>
                 <td>{p.providers}</td>
+                <td>{p.providersEmail}</td>
 
                 <td>
                   <Link

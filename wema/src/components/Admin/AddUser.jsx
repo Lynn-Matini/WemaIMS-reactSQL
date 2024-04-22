@@ -7,7 +7,6 @@ function AddUser() {
     name: '',
     age: '',
     gender: '',
-    allocation: '0',
     email: '',
     password: '',
     address: '',
@@ -17,11 +16,17 @@ function AddUser() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const userAge = Number(user.age);
+
+    if (userAge < 18 || userAge > 70) {
+      alert('Age should be between 18 and 70');
+      return; // Stop the submission if the validation fails
+    }
+
     const formdata = new FormData();
     formdata.append('name', user.name);
     formdata.append('age', user.age);
     formdata.append('gender', user.gender);
-    formdata.append('allocation', user.allocation);
     formdata.append('email', user.email);
     formdata.append('password', user.password);
     formdata.append('address', user.address);
@@ -86,20 +91,6 @@ function AddUser() {
               <option value="Female">Female</option>
               <option value="Male">Male</option>
             </select>
-          </div>
-          <div className="col-12">
-            <label htmlFor="userAllocation" className="form-label">
-              Allocation
-            </label>
-            <input
-              type="number"
-              className="form-control rounded-0"
-              id="userAllocation"
-              name="allocation"
-              disabled
-              value="0"
-              onChange={(e) => setUser({ ...user, allocation: e.target.value })}
-            />
           </div>
 
           <div className="col-12">

@@ -49,7 +49,6 @@ function User() {
               <th>Name</th>
               <th>Age</th>
               <th>Gender</th>
-              <th>Allocation</th>
               <th>Image</th>
               <th>Email</th>
               <th>Address</th>
@@ -63,7 +62,6 @@ function User() {
                 <td>{u.name}</td>
                 <td>{u.age}</td>
                 <td>{u.gender}</td>
-                <td>{u.allocation}</td>
                 <td>
                   <img
                     src={`http://localhost:3000/Images/` + u.image}

@@ -48,7 +48,7 @@ function EditProduct() {
   return (
     <div className="d-flex justify-content-center align-items-center mt-3">
       <div className="p-3 rounded w-50 border">
-        <h3 className="text-center">Edit Claim</h3>
+        <h3 className="text-center">Edit Product</h3>
         <form className="row g-1" onSubmit={handleSubmit}>
           <div className="col-12">
             <label htmlFor="pName" className="form-label">

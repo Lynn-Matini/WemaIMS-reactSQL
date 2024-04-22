@@ -2,15 +2,31 @@
   display: none;
 }
 
-.sidenav {
-  /* position: fixed; */
+/* LOGIN PAGE & FORMS */
+.loginForm {
+  background: white;
 }
 
+.loginPage {
+  background: #e5e5e5;
+}
+
+/* NAVIGATION BAR */
+.navlinks:hover,
+.active {
+  color: orange;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* IMAGE IN USER PAGE */
 .user_image {
   width: 40px;
   height: 40px;
   border-radius: 50%;
 }
+
+/* IMAGE IN PROFILE PAGE */
 .profile_image {
   width: 100px;
   height: 100px;
@@ -20,13 +36,21 @@
   background-color: #646cff;
 }
 
-.linkToStart {
+/* LOGIN AS USER/ADMIN LINK */
+.linkToPortal {
   display: flex;
   justify-content: center;
   margin-bottom: 10px;
-  margin-top: -10px;
+  margin-top: 30px;
 }
 
+/* LOGIN BUTTONS */
+.loginButton:hover {
+  background-image: linear-gradient(to right, #646cff, green);
+  font-weight: bold;
+}
+
+/* ACTION BUTTONS */
 .approve:hover {
   background-color: darkgreen;
   font-weight: bold;
@@ -44,6 +68,7 @@
   font-weight: bold;
 }
 
+/* STATBOX */
 .dashboardDesc {
   font-size: 10px;
   background-color: #646cff;
@@ -69,4 +94,49 @@
   justify-content: flex-end;
   margin-right: 1rem;
   margin-top: 1rem;
+}
+
+/* SEPARATION OF DETAILS LAYOUT IN PROFILE PAGE */
+.display {
+  display: flex;
+  justify-content: space-between;
+  width: 70%;
+}
+
+.educationDisplay {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* DETAILS IN PROFILE PAGE */
+.profileText {
+  color: orangered;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+/* CONTAINS ADD PRODUCT AND PAYMENT BOX DETAILS */
+.productContainer {
+  display: flex;
+  justify-content: space-between;
+}
+
+.addProduct {
+  display: flex;
+  justify-content: center;
+  margin-top: 75px;
+}
+
+/* PAYMENTBOX AT PRODUCTS PAGE FOR USERS */
+.paymentBox {
+  border: 5px dotted orangered;
+  width: 23%;
+  font-size: 17px;
+  font-weight: bold;
+  padding-left: 10px;
+  padding-top: 10px;
+}
+
+.paymentText {
+  color: blue;
 }

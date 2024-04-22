@@ -13,7 +13,6 @@ function EditClaim() {
     status: '',
     userId: '',
   });
-  const [user, setUser] = useState([]);
   const [attach, setAttach] = useState([]);
   const navigate = useNavigate();
 
@@ -22,18 +21,10 @@ function EditClaim() {
       .get('http://localhost:3000/admin/boughtproducts')
       .then((result) => {
         if (result.data.Status) {
-          setAttach(result.data.Result);
-        } else {
-          alert(result.data.Error);
-        }
-      })
-      .catch((err) => console.log(err));
-
-    axios
-      .get('http://localhost:3000/admin/users')
-      .then((result) => {
-        if (result.data.Status) {
-          setUser(result.data.Result);
+          const approvedProducts = result.data.Result.filter(
+            (product) => product.status === 'APPROVED'
+          );
+          setAttach(approvedProducts);
         } else {
           alert(result.data.Error);
         }
@@ -199,13 +190,13 @@ function EditClaim() {
               id="uId2"
               value={claim.userId}
               className="form-select"
-              onChange={(e) => setUser({ ...user, userId: e.target.value })}
+              onChange={(e) => setClaim({ ...claim, userId: e.target.value })}
             >
               <option value="">Select User ID</option>
-              {user.map((u) => {
+              {attach.map((a) => {
                 return (
-                  <option key={u.id} value={u.id}>
-                    {u.id}
+                  <option key={a.userId} value={a.userId}>
+                    {a.userId}
                   </option>
                 );
               })}

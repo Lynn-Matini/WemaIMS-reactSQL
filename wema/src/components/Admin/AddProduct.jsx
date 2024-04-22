@@ -10,6 +10,7 @@ function AddProduct() {
     benefits: '',
     allocation: '',
     providers: '',
+    providersEmail: '', // Added providersEmail
   });
   const navigate = useNavigate();
 
@@ -22,6 +23,7 @@ function AddProduct() {
       benefits: product.benefits,
       allocation: product.allocation,
       providers: product.providers,
+      providersEmail: product.providersEmail, // Added providersEmail
     };
 
     axios
@@ -132,6 +134,21 @@ function AddProduct() {
               placeholder="Enter Providers"
               onChange={(e) =>
                 setProduct({ ...product, providers: e.target.value })
+              }
+            />
+          </div>
+          <div className="col-12">
+            <label htmlFor="productProviderEmail" className="form-label">
+              Providers Email
+            </label>
+            <input
+              type="email"
+              className="form-control rounded-0"
+              id="productProviderEmail"
+              name="providersEmail"
+              placeholder="Enter Providers Email"
+              onChange={(e) =>
+                setProduct({ ...product, providersEmail: e.target.value })
               }
             />
           </div>

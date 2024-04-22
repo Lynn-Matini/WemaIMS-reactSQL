@@ -12,7 +12,6 @@ function AddClaim() {
     status: '',
     userId: '',
   });
-  const [user, setUser] = useState([]);
   const [attach, setAttach] = useState([]);
   const navigate = useNavigate();
 
@@ -21,18 +20,11 @@ function AddClaim() {
       .get('http://localhost:3000/admin/boughtproducts')
       .then((result) => {
         if (result.data.Status) {
-          setAttach(result.data.Result);
-        } else {
-          alert(result.data.Error);
-        }
-      })
-      .catch((err) => console.log(err));
-
-    axios
-      .get('http://localhost:3000/admin/users')
-      .then((result) => {
-        if (result.data.Status) {
-          setUser(result.data.Result);
+          const approvedProducts = result.data.Result.filter(
+            (product) => product.status === 'APPROVED'
+          );
+          setAttach(approvedProducts);
+          console.log(approvedProducts);
         } else {
           alert(result.data.Error);
         }
@@ -52,12 +44,14 @@ function AddClaim() {
         productId: selectedClaim.id,
         providers: selectedClaim.providers,
         status: 'PENDING',
+        userId: selectedClaim.userId,
       });
     } else {
       setClaim({
         productId: '',
         providers: '',
         status: '',
+        userId: '',
       });
     }
     console.log(selectedClaim);
@@ -65,6 +59,24 @@ function AddClaim() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const claimAmount = parseFloat(claim.amount);
+
+    const selectedProduct = attach.find(
+      (product) => Number(product.id) === Number(claim.productId)
+    );
+    console.log(selectedProduct.balance);
+    const productBalance = parseFloat(selectedProduct.balance);
+
+    if (!selectedProduct) {
+      alert("Product not selected or doesn't exist.");
+      return;
+    }
+
+    if (claimAmount > productBalance) {
+      alert(`Insufficient balance. Your balance is Kes ${productBalance}`);
+      return; // Stop the form submission
+    }
+
     const claimdata = {
       claimName: claim.claimName,
       amount: claim.amount,
@@ -93,6 +105,27 @@ function AddClaim() {
       <div className="p-3 rounded w-50 border">
         <h3 className="text-center">Add Claim</h3>
         <form className="row g-1" onSubmit={handleSubmit}>
+          <div className="col-12">
+            <label htmlFor="pId2" className="form-label">
+              Purchased Product ID
+            </label>
+            <select
+              className="form-select"
+              id="pId2"
+              name="productId"
+              value={claim.productId}
+              onChange={handleClaimChange}
+            >
+              <option value="">Select Product ID</option>
+              {attach.map((a) => {
+                return (
+                  <option key={a.id} value={a.id}>
+                    {a.id}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
           <div className="col-12">
             <label htmlFor="cName" className="form-label">
               Claim Name
@@ -136,28 +169,7 @@ function AddClaim() {
               onChange={(e) => setClaim({ ...claim, notes: e.target.value })}
             />
           </div>
-          <div className="col-12">
-            <label htmlFor="pId2" className="form-label">
-              Purchased Product ID
-            </label>
-            <select
-              className="form-select"
-              id="pId2"
-              name="productId"
-              value={claim.productId}
-              onChange={handleClaimChange}
-            >
-              <option value="">Select Product ID</option>
-              {attach.map((a) => {
-                return (
-                  <option key={a.id} value={a.id}>
-                    {a.id}
-                  </option>
-                );
-              })}
-              {console.log(attach)}
-            </select>
-          </div>
+
           <div className="col-12">
             <label htmlFor="claimProvider" className="form-label">
               Provider Name
@@ -190,24 +202,14 @@ function AddClaim() {
             <label htmlFor="uId2" className="form-label">
               User ID
             </label>
-            <select
-              className="form-select"
+            <input
+              disabled
+              className="form-control rounded-0"
               id="uId2"
               name="userId"
               value={claim.userId}
               placeholder="Select User ID"
-              onChange={(e) => setClaim({ ...claim, userId: e.target.value })}
-            >
-              <option value="">Select User ID</option>
-              {user.map((u) => {
-                return (
-                  <option key={u.id} value={u.id}>
-                    {u.id}
-                  </option>
-                );
-              })}
-            </select>
-            {console.log('UserID ' + claim.userId)}
+            />
           </div>
           <div className="col-12">
             <button type="submit" className="btn btn-primary w-100">

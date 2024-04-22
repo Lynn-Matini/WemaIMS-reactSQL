@@ -8,7 +8,7 @@ function UserEditClaim() {
     claimName: '',
     amount: '',
     notes: '',
-    providerName: '',
+    providers: '',
     status: '',
     userId: '',
   });
@@ -17,18 +17,6 @@ function UserEditClaim() {
 
   useEffect(() => {
     axios
-      .get('http://localhost:3000/user/users')
-      .then((result) => {
-        if (result.data.Status) {
-          setUser(result.data.Result);
-          console.log(id);
-        } else {
-          alert(result.data.Error);
-        }
-      })
-      .catch((err) => console.log(err));
-
-    axios
       .get('http://localhost:3000/user/userclaims/' + id)
       .then((result) => {
         setClaim({
@@ -36,7 +24,7 @@ function UserEditClaim() {
           claimName: result.data.Result[0].claimName,
           amount: result.data.Result[0].amount,
           notes: result.data.Result[0].notes,
-          providerName: result.data.Result[0].providerName,
+          providers: result.data.Result[0].providers,
           status: result.data.Result[0].status,
           userId: result.data.Result[0].userId,
         });
@@ -109,13 +97,14 @@ function UserEditClaim() {
               Provider Name
             </label>
             <input
+              disabled
               type="text"
               className="form-control rounded-0"
               id="claimProvider"
-              value={claim.providerName}
+              value={claim.providers}
               placeholder="Enter Provider Name"
               onChange={(e) =>
-                setClaim({ ...claim, providerName: e.target.value })
+                setClaim({ ...claim, providers: e.target.value })
               }
             />
           </div>
