@@ -84,7 +84,7 @@ function App() {
           <Route path="/useradd_claim" element={<UserAddClaim />} />
           <Route path="/useredit_claim/:id" element={<UserEditClaim />} />
           <Route path="/userprofile" element={<UserProfile />} />
-          <Route path="/education" element={<Education />}></Route>
+          <Route path="/education" element={<Education />} />
         </Route>
       </Routes>
     </Router>
